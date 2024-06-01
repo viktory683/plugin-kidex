@@ -7,12 +7,16 @@ use std::{fs, os::unix::prelude::OsStrExt, process::Command};
 
 #[derive(Deserialize)]
 struct Config {
+    prefix: String,
     max_entries: usize,
 }
 
 impl Default for Config {
     fn default() -> Self {
-        Self { max_entries: 3 }
+        Self {
+            prefix: "".into(),
+            max_entries: 3,
+        }
     }
 }
 
@@ -92,6 +96,10 @@ pub fn init(config_dir: RString) -> State {
 
 #[get_matches]
 pub fn get_matches(input: RString, state: &State) -> RVec<Match> {
+    if !input.starts_with(&state.config.prefix) {
+        return RVec::new();
+    }
+
     match &state.selection {
         Some(index_entry) => {
             let path = index_entry.path.to_string_lossy();
@@ -128,7 +136,10 @@ pub fn get_matches(input: RString, state: &State) -> RVec<Match> {
                 .into_iter()
                 .filter_map(|(id, index_entry)| {
                     matcher
-                        .fuzzy_match(&index_entry.path.as_os_str().to_string_lossy(), &input)
+                        .fuzzy_match(
+                            &index_entry.path.as_os_str().to_string_lossy(),
+                            input.trim_start_matches(&state.config.prefix).trim(),
+                        )
                         .map(|val| (index_entry, id, val))
                 })
                 .collect::<Vec<_>>();
