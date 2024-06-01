@@ -11,6 +11,7 @@ As long as the Kidex daemon is running, simply look up the file names.
 ```ron
 // <Anyrun config directory>/kidex.ron
 Config(
+  prefix: ":f",  // "" by default
   max_entries: 3,
 )
 ```
